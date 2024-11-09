@@ -65,78 +65,114 @@
     </style>
 </head>
 <body>
-<h1 id="page-title">Video Links</h1>
-<div id="video-buttons"></div>
-<p id="not-found" class="not-found" style="display: none;">404 - Course or Week Not Found</p>
+    <h1 id="page-title">Video Links</h1>
+    <div id="content"></div>
+    <p id="not-found" class="not-found" style="display: none;">404 - Course or Week Not Found</p>
 
-<!-- Footer -->
-<footer>
-    &copy; <span id="year"></span> Tech Fusion
-</footer>
+    <!-- Footer -->
+    <footer>
+        &copy; <span id="year"></span> Tech Fusion
+    </footer>
 
-<script>
-    // Set the current year in the footer
-    document.getElementById("year").textContent = new Date().getFullYear();
+    <script>
+        // Set the current year in the footer
+        document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Function to parse course name and week from the URL
-    function getCourseAndWeekFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const courseName = urlParams.get('course');
-        const week = urlParams.get('week');
-        console.log(courseName, week);
-        return {courseName, week};
-
-    }
-
-    // Function to fetch video data from JSON and display relevant videos
-    async function loadVideoData() {
-        try {
-            const response = await fetch('/data/res.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const jsonData = await response.json();
-
-            const {courseName, week} = getCourseAndWeekFromURL();
-            displayVideoLinks(jsonData, courseName, week);
-        } catch (error) {
-            console.error("Error fetching the JSON file:", error);
+        // Function to parse course name and week from query parameters
+        function getCourseAndWeekFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseName = urlParams.get('course');
+            const week = urlParams.get('week');
+            return { courseName, week };
         }
-    }
 
-    // Function to dynamically create video links or show 404 if not found
-    function displayVideoLinks(jsonData, courseName, week) {
-        const videoButtonsContainer = document.getElementById("video-buttons");
-        const notFoundMessage = document.getElementById("not-found");
-        const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
-        const formattedWeek = week.toLowerCase().replace(/\s+/g, '-');
+        // Function to fetch video data from JSON and display relevant information
+        async function loadVideoData() {
+            try {
+                const response = await fetch('/data/res.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const jsonData = await response.json();
 
-        if (jsonData[formattedCourseName] && jsonData[formattedCourseName][formattedWeek]) {
-            // Update page title to reflect the course and week
-            document.getElementById("page-title").textContent = `${courseName.replace(/-/g, ' ')} - ${week.replace(/-/g, ' ')}`;
-
-            // Get videos for the specified course and week
-            const videos = jsonData[formattedCourseName][formattedWeek];
-            for (const videoName in videos) {
-                const videoLink = videos[videoName];
-
-                // Create a button for each video
-                const videoButton = document.createElement("a");
-                videoButton.href = videoLink;
-                videoButton.target = "_blank";
-                videoButton.className = "button";
-                videoButton.textContent = videoName.replace(/-/g, ' ');
-                videoButtonsContainer.appendChild(videoButton);
+                const { courseName, week } = getCourseAndWeekFromURL();
+                if (courseName && !week) {
+                    // Show available weeks for the course if week is not provided
+                    displayAvailableWeeks(jsonData, courseName);
+                } else if (courseName && week) {
+                    // Show videos for the specific week if both course and week are provided
+                    displayVideoLinks(jsonData, courseName, week);
+                } else {
+                    // Show 404 if no course name is provided
+                    showNotFound();
+                }
+            } catch (error) {
+                console.error("Error fetching the JSON file:", error);
+                showNotFound();
             }
-        } else {
-            // Show 404 message if course or week is not found
+        }
+
+        // Function to display available weeks for a course
+        function displayAvailableWeeks(jsonData, courseName) {
+            const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
+            const contentDiv = document.getElementById("content");
+            const notFoundMessage = document.getElementById("not-found");
+
+            if (jsonData[formattedCourseName]) {
+                document.getElementById("page-title").textContent = `${courseName.replace(/-/g, ' ')} - Available Weeks`;
+                notFoundMessage.style.display = "none";
+
+                const weeks = Object.keys(jsonData[formattedCourseName]);
+                weeks.forEach(week => {
+                    const weekButton = document.createElement("a");
+                    weekButton.href = `?course=${formattedCourseName}&week=${week}`;
+                    weekButton.className = "button";
+                    weekButton.textContent = week.replace(/-/g, ' ');
+                    contentDiv.appendChild(weekButton);
+                });
+            } else {
+                showNotFound();
+            }
+        }
+
+        // Function to display video links for a specific course and week
+        function displayVideoLinks(jsonData, courseName, week) {
+            const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
+            const formattedWeek = week.toLowerCase().replace(/\s+/g, '-');
+            const contentDiv = document.getElementById("content");
+            const notFoundMessage = document.getElementById("not-found");
+
+            if (jsonData[formattedCourseName] && jsonData[formattedCourseName][formattedWeek]) {
+                document.getElementById("page-title").textContent = `${courseName.toLocaleUpperCase().replace(/-/g, ' ')} - ${week.replace(/-/g, ' ')}`;
+                notFoundMessage.style.display = "none";
+
+                const videos = jsonData[formattedCourseName][formattedWeek];
+                for (const videoName in videos) {
+                    const videoLink = videos[videoName];
+
+                    const videoButton = document.createElement("a");
+                    videoButton.href = videoLink;
+                    videoButton.target = "_blank";
+                    videoButton.className = "button";
+                    videoButton.textContent = videoName.replace(/-/g, ' ');
+                    contentDiv.appendChild(videoButton);
+                }
+            } else {
+                showNotFound();
+            }
+        }
+
+        // Function to display a 404 message if the course or week is not found
+        function showNotFound() {
+            const notFoundMessage = document.getElementById("not-found");
+            const contentDiv = document.getElementById("content");
+            document.getElementById("page-title").textContent = "404 - Not Found";
             notFoundMessage.style.display = "block";
-            videoButtonsContainer.style.display = "none";
+            contentDiv.innerHTML = ''; // Clear any existing content
         }
-    }
 
-    // Load video data on page load
-    loadVideoData();
-</script>
+        // Load video data on page load
+        loadVideoData();
+    </script>
 </body>
 </html>
