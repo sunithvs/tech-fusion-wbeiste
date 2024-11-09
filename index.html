@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Links</title>
+    <style>
+        /* Page styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Title styling */
+        h1 {
+            color: #307D7E;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* Button styling */
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background-color: #307D7E;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover effect */
+        .button:hover {
+            background-color: #205D5E;
+        }
+
+        /* Footer styling */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            font-size: 0.9rem;
+            position: fixed;
+            bottom: 0;
+        }
+
+        /* 404 message styling */
+        .not-found {
+            color: red;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<h1 id="page-title">Video Links</h1>
+<div id="video-buttons"></div>
+<p id="not-found" class="not-found" style="display: none;">404 - Course or Week Not Found</p>
+
+<!-- Footer -->
+<footer>
+    &copy; <span id="year"></span> Tech Fusion
+</footer>
+
+<script>
+    // Set the current year in the footer
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Function to parse course name and week from the URL
+    function getCourseAndWeekFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseName = urlParams.get('course');
+        const week = urlParams.get('week');
+        console.log(courseName, week);
+        return {courseName, week};
+
+    }
+
+    // Function to fetch video data from JSON and display relevant videos
+    async function loadVideoData() {
+        try {
+            const response = await fetch('/data/res.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const jsonData = await response.json();
+
+            const {courseName, week} = getCourseAndWeekFromURL();
+            displayVideoLinks(jsonData, courseName, week);
+        } catch (error) {
+            console.error("Error fetching the JSON file:", error);
+        }
+    }
+
+    // Function to dynamically create video links or show 404 if not found
+    function displayVideoLinks(jsonData, courseName, week) {
+        const videoButtonsContainer = document.getElementById("video-buttons");
+        const notFoundMessage = document.getElementById("not-found");
+        const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
+        const formattedWeek = week.toLowerCase().replace(/\s+/g, '-');
+
+        if (jsonData[formattedCourseName] && jsonData[formattedCourseName][formattedWeek]) {
+            // Update page title to reflect the course and week
+            document.getElementById("page-title").textContent = `${courseName.replace(/-/g, ' ')} - ${week.replace(/-/g, ' ')}`;
+
+            // Get videos for the specified course and week
+            const videos = jsonData[formattedCourseName][formattedWeek];
+            for (const videoName in videos) {
+                const videoLink = videos[videoName];
+
+                // Create a button for each video
+                const videoButton = document.createElement("a");
+                videoButton.href = videoLink;
+                videoButton.target = "_blank";
+                videoButton.className = "button";
+                videoButton.textContent = videoName.replace(/-/g, ' ');
+                videoButtonsContainer.appendChild(videoButton);
+            }
+        } else {
+            // Show 404 message if course or week is not found
+            notFoundMessage.style.display = "block";
+            videoButtonsContainer.style.display = "none";
+        }
+    }
+
+    // Load video data on page load
+    loadVideoData();
+</script>
+</body>
+</html>
