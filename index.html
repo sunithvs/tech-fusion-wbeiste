@@ -157,6 +157,18 @@
                     videoButton.textContent = videoName.replace(/-/g, ' ');
                     contentDiv.appendChild(videoButton);
                 }
+            //     a back button to weeks page in new line inside a div so that it will be center aligned
+                const backButton = document.createElement("a");
+                backButton.href = `?course=${formattedCourseName}`;
+                // backButton.className = "button";
+                backButton.textContent = "Back";
+                const div = document.createElement("div");
+                div.innerHTML = "<br>";
+                div.style.textAlign = "center";
+
+                div.appendChild(backButton);
+                contentDiv.appendChild(div);
+
             } else {
                 showNotFound();
             }
