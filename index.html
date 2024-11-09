@@ -4,187 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Links</title>
-    <style>
-        /* Page styling */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        /* Title styling */
-        h1 {
-            color: #307D7E;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        /* Button styling */
-        .button {
-            display: inline-block;
-            margin: 10px;
-            padding: 12px 24px;
-            background-color: #307D7E;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        /* Hover effect */
-        .button:hover {
-            background-color: #205D5E;
-        }
-
-        /* Footer styling */
-        footer {
-            width: 100%;
-            text-align: center;
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            font-size: 0.9rem;
-            position: fixed;
-            bottom: 0;
-        }
-
-        /* 404 message styling */
-        .not-found {
-            color: red;
-            font-size: 1.5rem;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1 id="page-title">Video Links</h1>
-    <div id="content"></div>
-    <p id="not-found" class="not-found" style="display: none;">404 - Course or Week Not Found</p>
+<body class="bg-gradient-to-br from-slate-100 to-slate-200 min-h-screen">
+    <div class="container mx-auto px-4 py-8 min-h-screen flex flex-col">
+        <!-- Header with animated gradient text -->
+        <h1 id="page-title" class="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-teal-600 to-blue-600 text-transparent bg-clip-text tracking-tight"></h1>
 
-    <!-- Footer -->
-    <footer>
-        &copy; <span id="year"></span> Tech Fusion
-    </footer>
+        <!-- Main Content -->
+        <div id="content" class="flex-grow flex flex-col items-center gap-4 mb-16">
+            <!-- Content will be dynamically inserted here -->
+        </div>
 
-    <script>
-        // Set the current year in the footer
-        document.getElementById("year").textContent = new Date().getFullYear();
+        <!-- 404 Message -->
+        <p id="not-found" class="hidden text-center text-2xl text-red-600 font-semibold animate-pulse">
+            404 - Course or Week Not Found
+        </p>
 
-        // Function to parse course name and week from query parameters
-        function getCourseAndWeekFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const courseName = urlParams.get('course');
-            const week = urlParams.get('week');
-            return { courseName, week };
-        }
+        <!-- Footer with gradient -->
+        <footer class="mt-auto py-6 text-center text-sm bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-lg shadow-lg">
+            <p class="font-medium">&copy; <span id="year"></span> Tech Fusion</p>
+            <p class="text-slate-400 text-xs mt-1">Empowering Learning Through Technology</p>
+        </footer>
+    </div>
 
-        // Function to fetch video data from JSON and display relevant information
-        async function loadVideoData() {
-            try {
-                const response = await fetch('/data/res.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const jsonData = await response.json();
-
-                const { courseName, week } = getCourseAndWeekFromURL();
-                if (courseName && !week) {
-                    // Show available weeks for the course if week is not provided
-                    displayAvailableWeeks(jsonData, courseName);
-                } else if (courseName && week) {
-                    // Show videos for the specific week if both course and week are provided
-                    displayVideoLinks(jsonData, courseName, week);
-                } else {
-                    // Show 404 if no course name is provided
-                    showNotFound();
-                }
-            } catch (error) {
-                console.error("Error fetching the JSON file:", error);
-                showNotFound();
-            }
-        }
-
-        // Function to display available weeks for a course
-        function displayAvailableWeeks(jsonData, courseName) {
-            const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
-            const contentDiv = document.getElementById("content");
-            const notFoundMessage = document.getElementById("not-found");
-
-            if (jsonData[formattedCourseName]) {
-                document.getElementById("page-title").textContent = `${courseName.toLocaleUpperCase().replace(/-/g, ' ')}`;
-                notFoundMessage.style.display = "none";
-
-                const weeks = Object.keys(jsonData[formattedCourseName]);
-                weeks.forEach(week => {
-                    const weekButton = document.createElement("a");
-                    weekButton.href = `?course=${formattedCourseName}&week=${week}`;
-                    weekButton.className = "button";
-                    weekButton.textContent = week.replace(/-/g, ' ');
-                    contentDiv.appendChild(weekButton);
-                });
-            } else {
-                showNotFound();
-            }
-        }
-
-        // Function to display video links for a specific course and week
-        function displayVideoLinks(jsonData, courseName, week) {
-            const formattedCourseName = courseName.toLowerCase().replace(/\s+/g, '-');
-            const formattedWeek = week.toLowerCase().replace(/\s+/g, '-');
-            const contentDiv = document.getElementById("content");
-            const notFoundMessage = document.getElementById("not-found");
-
-            if (jsonData[formattedCourseName] && jsonData[formattedCourseName][formattedWeek]) {
-                document.getElementById("page-title").textContent = `${courseName.toLocaleUpperCase().replace(/-/g, ' ')} - ${week.replace(/-/g, ' ')}`;
-                notFoundMessage.style.display = "none";
-
-                const videos = jsonData[formattedCourseName][formattedWeek];
-                for (const videoName in videos) {
-                    const videoLink = videos[videoName];
-
-                    const videoButton = document.createElement("a");
-                    videoButton.href = videoLink;
-                    videoButton.target = "_blank";
-                    videoButton.className = "button";
-                    videoButton.textContent = videoName.replace(/-/g, ' ');
-                    contentDiv.appendChild(videoButton);
-                }
-            //     a back button to weeks page in new line inside a div so that it will be center aligned
-                const backButton = document.createElement("a");
-                backButton.href = `?course=${formattedCourseName}`;
-                // backButton.className = "button";
-                backButton.textContent = "Back";
-                const div = document.createElement("div");
-                div.innerHTML = "<br>";
-                div.style.textAlign = "center";
-
-                div.appendChild(backButton);
-                contentDiv.appendChild(div);
-
-            } else {
-                showNotFound();
-            }
-        }
-
-        // Function to display a 404 message if the course or week is not found
-        function showNotFound() {
-            const notFoundMessage = document.getElementById("not-found");
-            const contentDiv = document.getElementById("content");
-            document.getElementById("page-title").textContent = "404 - Not Found";
-            notFoundMessage.style.display = "block";
-            contentDiv.innerHTML = ''; // Clear any existing content
-        }
-
-        // Load video data on page load
-        loadVideoData();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
