@@ -119,7 +119,7 @@
             const notFoundMessage = document.getElementById("not-found");
 
             if (jsonData[formattedCourseName]) {
-                document.getElementById("page-title").textContent = `${courseName.replace(/-/g, ' ')} - Available Weeks`;
+                document.getElementById("page-title").textContent = `${courseName.toLocaleUpperCase().replace(/-/g, ' ')}`;
                 notFoundMessage.style.display = "none";
 
                 const weeks = Object.keys(jsonData[formattedCourseName]);
