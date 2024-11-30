@@ -9,6 +9,7 @@ function getCourseAndWeekFromURL() {
     return { courseName, week };
 }
 
+
 // Function to create a card element with hover effects and animations
 function createCard(href, text, additionalClasses = '', icon = null) {
     const card = document.createElement("a");
